@@ -1,4 +1,18 @@
+drop table Warehouses;
+drop table boxes;
 
+create table Warehouses (
+    code integer primary key,
+    location varchar(255) not null,
+    capacity integer
+
+);
+create table boxes (
+    code char(5) primary key,
+    contents varchar(255),
+    value real,
+    warehouse integer references Warehouses
+);
 INSERT INTO Warehouses(code, location, capacity) VALUES(1, 'Chicago', 3);
 INSERT INTO Warehouses(code, location, capacity) VALUES(2, 'Rocks', 4);
 INSERT INTO Warehouses(code, location, capacity) VALUES(3, 'New York', 7);
@@ -31,7 +45,7 @@ select warehouse as code, count(code)
 from boxes
 group by warehouse;
 
-select warehouse as code, count(code)
+select warehouse as code , count(code)
 from boxes
 group by warehouse
 having count(code) > 2;
@@ -56,5 +70,11 @@ delete from boxes
 where warehouse = 3 and warehouse = 6;
 
 delete from boxes
-where warehouse in(select code from Warehouses where location = 'New York')returning *;
+where warehouse in
+      (select code
+       from Warehouses
+       where location = 'New York')returning *;
+
+
+
 
