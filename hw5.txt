@@ -66,8 +66,8 @@ ORDER BY value desc;
 delete from boxes
 where value < 150;
 
-delete from boxes
-where warehouse = 3 and warehouse = 6;
+--delete from boxes
+--where warehouse = 3 and warehouse = 6;
 
 delete from boxes
 where warehouse in
