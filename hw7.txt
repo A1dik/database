@@ -1,0 +1,163 @@
+create table work
+(	
+	id int, 
+	name varchar, 
+	date_of_birth date, 
+	age int, 
+	salary numeric, 
+	workexperience int, 
+	discount numeric
+);
+
+--1
+create function slozh(a numeric) returns numeric as $$
+BEGIN
+    return a + 1;
+end;
+$$ language plpgsql;
+
+select slozh(2)
+
+--2
+create FUNCTION slozh_ch(a numeric, b numeric) returns numeric as $$
+begin 
+	return a + b;
+end;
+$$ language plpgsql;
+
+select slozh_ch(3,5);
+
+--3
+create function delen(a int) returns boolean as $$
+begin
+    if a % 2 = 0 then return true;
+    else return false;
+	end if;
+end;
+$$ language plpgsql;
+
+select delen(8)
+
+--4
+create or replace function pass(s varchar) returns boolean as $$
+begin
+    if s <> 'abcd' then return false;
+    else return true;
+    end if;
+end;
+$$ language plpgsql;
+
+select pass('abce')
+
+--5
+create function operac(a numeric, out sqr numeric, out cube numeric) as $$
+begin
+    sqr = a * a;
+    cube = sqr * a;
+end;
+$$ language plpgsql;
+
+select operac(2)
+
+--2
+--drop trigger if EXISTS age_a;
+create or replace function age() returns trigger as
+$$
+begin
+    	raise notice '%', age(old(),new);
+    	return new;
+end;
+$$ language plpgsql;
+
+create trigger age_a before insert on table2 for each row execute procedure age();
+--3
+--drop trigger if EXISTS tax_t;
+create or replace function tax()returns trigger as $$
+begin
+    new.cost = new.cost * 1.12;
+    return new;
+end;
+$$ language plpgsql;
+
+create trigger tax_t before insert on table3 for each row execute procedure tax();
+
+--4
+--drop trigger if EXISTS udalenie;
+create or replace function stop()returns trigger as $$
+begin
+    raise notice 'you can not delite';
+end;
+$$ language plpgsql;
+
+create trigger udalenie before delete on table4 execute procedure stop();
+
+--5
+--drop trigger if EXISTS zap_func;
+create or replace function vizov()returns trigger as $$
+begin
+    raise notice '%', pass(new);
+    raise notice '%', operac(new);
+    return new;
+end;
+$$ language plpgsql;
+
+create trigger zap_func before insert on table5 for each row execute procedure vizov();
+
+
+--1
+DROP FUNCTION inc_sal_of_exper;
+create function inc_sal_of_exper(id int, name varchar, date_of_birth date, age int, inout salary numeric, workexperience int, out discount numeric) as $$
+declare
+    count int;
+begin
+    discount = 10;
+    count = workexperience/2;
+    for step in 1..count 
+	loop
+        salary = salary * 1.1; --add10%
+    end loop;
+    count = workexperience/5; --workexperafter5years
+    for step in 1..count 
+	loop
+        discount = discount * 1.01; --add1%
+    end loop;
+    insert into work 
+	values(id, name, date_of_birth, age, salary, workexperience, discount);
+end;
+$$ language plpgsql;
+
+select * from inc_sal_of_exper(1, 'samanyel', '2003-07-10', 19, 1000, 10);
+select * from inc_sal_of_exper(3, 'rick', '2003-07-10', 19, 2000, 20);
+
+
+
+
+--2
+DROP FUNCTION inc_sal_ofthe_incval;
+create or replace function inc_sal_ofthe_incval(id int, name varchar, date_of_birth date, age int, inout salary numeric, workexperience int, out discount numeric) as $$
+DECLARE
+    count int;
+BEGIN
+	discount = 10;
+    if age >= 40 then salary = salary * 1.15;
+    end if;
+    count = workexperience/2;
+    for step in 1..count 
+	loop
+        salary = salary * 1.1;
+    end loop;
+    count = workexperience/5;
+    for step in 1..count 
+	loop
+        discount = discount * 1.01;
+    end loop;
+    if workexperience > 8 then salary = salary * 1.15;
+    end if;
+    if workexperience > 8 then discount = 20;
+    end if;
+    insert into work 
+	values(id, name, date_of_birth, age, salary, workexperience, discount);
+end;
+$$ language plpgsql;
+
+select * from inc_sal_ofthe_incval(2, 'sasha', '2003-07-10', 57, 2000, 20);
